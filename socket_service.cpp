@@ -34,7 +34,7 @@ int executeCommand(const char* command, char* outputBuffer,
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <port>" << std::endl;
+        std::cerr << "You should enter port number as argument!" << '\n';
         return -1;
     }
 
