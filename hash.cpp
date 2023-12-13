@@ -69,7 +69,7 @@ void parallelHashCrack(const std::string &hashToCrack, int start, int end) {
 
 // int main(int argc, char *argv[]) {
 //     if (argc != 2) {
-//         std::cerr << "Использование: " << argv[0] << " <your hash>" << '\n';
+//         std::cerr << "You should enter hash as argument!" << '\n';
 //         return 1;
 //     }
 

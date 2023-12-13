@@ -1,106 +1,107 @@
-#include <iostream>
-#include <sstream>
-#include <vector>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include <iostream>
 
-constexpr int MAX_BUFFER_SIZE = 1024;
-constexpr int MAX_CLIENTS = 10;
+const int BUFFER_SIZE = 1024;
 
-void executeCommand(int clientSocket, const std::string& command) {
-    std::stringstream response;
-
-    FILE* pipe = popen(command.c_str(), "r");
+int executeCommand(const char* command, char* outputBuffer,
+                   size_t outputBufferSize) {
+    FILE* pipe = popen(command, "r");
     if (!pipe) {
-        response << "Error: Unable to execute command.";
-    } else {
-        char buffer[MAX_BUFFER_SIZE];
-        while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-            response << buffer;
-        }
-        pclose(pipe);
+        return -1;
     }
 
-    send(clientSocket, response.str().c_str(), response.str().length(), 0);
+    std::string result;
+    char buffer[128];
+
+    while (!feof(pipe)) {
+        if (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+            result += buffer;
+        }
+    }
+
+    strncpy(outputBuffer, result.c_str(), outputBufferSize - 1);
+    outputBuffer[outputBufferSize - 1] = '\0';
+
+    int status = pclose(pipe);
+
+    return status;
 }
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <port>" << std::endl;
-        return 1;
+        return -1;
     }
 
-    int serverSocket, clientSocket;
-    socklen_t clientLength;
-    struct sockaddr_in serverAddress, clientAddress;
+    int serverSocket;
+    sockaddr_in serverAddress, clientAddress;
 
-    // Create socket
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket < 0) {
-        std::cerr << "Error: Unable to open socket." << std::endl;
-        return 1;
+    if ((serverSocket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        std::cerr << "Error creating socket." << std::endl;
+        return -1;
     }
 
-    // Initialize server address
-    memset((char*)&serverAddress, 0, sizeof(serverAddress));
-    int portNumber = std::atoi(argv[1]);
     serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(std::atoi(argv[1]));
     serverAddress.sin_addr.s_addr = INADDR_ANY;
-    serverAddress.sin_port = htons(portNumber);
 
-    // Bind socket to address
-    if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
-        std::cerr << "Error: Unable to bind socket." << std::endl;
-        return 1;
+    if (bind(serverSocket, (struct sockaddr*)&serverAddress,
+             sizeof(serverAddress)) == -1) {
+        std::cerr << "Error binding socket." << std::endl;
+        close(serverSocket);
+        return -1;
     }
 
-    // Listen for incoming connections
-    listen(serverSocket, MAX_CLIENTS);
-    std::cout << "Server listening on port " << portNumber << "..." << std::endl;
+    if (listen(serverSocket, 10) == -1) {
+        std::cerr << "Error listening for connections." << std::endl;
+        close(serverSocket);
+        return -1;
+    }
 
-    clientLength = sizeof(clientAddress);
+    std::cout << "Server is listening on port " << std::atoi(argv[1])
+              << std::endl;
+
+    socklen_t clientLength = sizeof(clientAddress);
 
     while (true) {
-        // Accept a connection
-        clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddress, &clientLength);
-        if (clientSocket < 0) {
-            std::cerr << "Error: Unable to accept connection." << std::endl;
+        int clientSocket = accept(
+            serverSocket, (struct sockaddr*)&clientAddress, &clientLength);
+        if (clientSocket == -1) {
+            std::cerr << "Error accepting connection." << std::endl;
             continue;
         }
 
-        // Fork a child process to handle the client
-        if (fork() == 0) {
-            close(serverSocket);  // Child process doesn't need the listener socket
+        char buffer[BUFFER_SIZE];
+        memset(buffer, 0, sizeof(buffer));
 
-            char buffer[MAX_BUFFER_SIZE];
-            memset(buffer, 0, sizeof(buffer));
-
-            // Receive command from the client
-            ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-            if (bytesRead < 0) {
-                std::cerr << "Error: Unable to read from socket." << std::endl;
-            } else if (bytesRead == 0) {
-                std::cout << "Connection closed by client." << std::endl;
-            } else {
-                // Execute the received command
-                std::string command(buffer);
-                executeCommand(clientSocket, command);
-            }
-
-            // Close the client socket and exit the child process
+        ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+        if (bytesRead <= 0) {
+            std::cerr << "Error receiving command." << std::endl;
             close(clientSocket);
-            exit(0);
-        } else {
-            // Parent process closes the client socket
-            close(clientSocket);
+            continue;
         }
+        std::cout << "Received: " << buffer << std::endl;
+
+        // Execute the command
+        char outputBuffer[BUFFER_SIZE];
+        memset(outputBuffer, 0, sizeof(outputBuffer));
+        int exitCode =
+            executeCommand(buffer, outputBuffer, sizeof(outputBuffer));
+
+        // Send the results back to the client
+        std::string response =
+            "Exit code: " + std::to_string(exitCode) + "\n" + outputBuffer;
+        send(clientSocket, response.c_str(), response.length(), 0);
+
+        close(clientSocket);
     }
 
     close(serverSocket);
+
     return 0;
 }
