@@ -14,7 +14,7 @@ int simplex_method(vector<vector<int>>& A,
                 
                 cout<<"dp[creature]="<<dp[creature]<<'\n';
                 cout<<"power[creature] + dp[res] - A[res][creature]="<<power[creature] + dp[res] - A[res][creature]<<'\n';
-                dp[creature] =power[creature] + dp[res] /*- A[res][creature]*/);
+                dp[creature] =power[creature] + dp[res] /*- A[res][creature]*/;
             }
         }
     }
@@ -50,6 +50,7 @@ int main() {
     vector<int> c = {1, 2, 3};
     vector<int> b = {10, 10, 10};  
 
+    
     int res = simplex_method(a, c, b);
   
     std::cout << "Максимальная сила: " << res << '\n';

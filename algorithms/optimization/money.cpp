@@ -10,27 +10,23 @@
 template <typename Func, typename... Args>
 std::pair<long, int> measureTime(Func&& func, Args&&... args) {
     auto start =
-        std::chrono::high_resolution_clock::now();  // Запускаем таймер перед
-                                                    // выполнением функции
+        std::chrono::high_resolution_clock::now();  
     auto res = std::forward<Func>(func)(
-        std::forward<Args>(args)...);  // Выполняем переданную функцию
+        std::forward<Args>(args)...);  
     auto end =
-        std::chrono::high_resolution_clock::now();  // Останавливаем таймер
-                                                    // после выполнения функции
+        std::chrono::high_resolution_clock::now();  
     return std::make_pair(
         res, std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-                 .count());  // Возвращаем время выполнения в миллисекундах
+                 .count());  
 }
 
 // Функция для нахождения наименьшего числа монет при размене суммы
 int minCoinsDP(std::vector<int>& coins, int amount) {
     int n = coins.size();
     std::vector<int> dp(amount + 1,
-                        INT_MAX);  // Инициализируем массив для хранения
-                                   // минимального числа монет для каждой суммы
-    dp[0] = 0;  // Нулевая сумма требует нуля монет
+                        INT_MAX);  
+    dp[0] = 0;  
 
-    // Вычисляем минимальное число монет для каждой суммы от 1 до target
     for (int i = 1; i <= amount; ++i) {
         for (int j = 0; j < n; ++j) {
             if (coins[j] <= i && dp[i - coins[j]] != INT_MAX) {
@@ -39,13 +35,12 @@ int minCoinsDP(std::vector<int>& coins, int amount) {
         }
     }
 
-    return dp[amount];  // Возвращаем минимальное число монет для суммы target
+    return dp[amount];  
 }
 
-// Функция для нахождения наименьшего числа монет при размене суммы
 int minCoinsGreedy(std::vector<int>& coins, int amount) {
     std::sort(coins.begin(), coins.end(),
-              std::greater<long>());  // Сортируем монеты по убыванию номинала
+              std::greater<long>());  // Сортируем монеты по убыванию
     int count = 0;
     for (int i = 0; i < coins.size(); ++i) {
         while (amount >= coins[i]) {
@@ -61,12 +56,12 @@ std::vector<int> getCoinNums(std::string str) {
     std::stringstream ss(str);
     std::string token;
 
-    // Разделяем строку по запятым и извлекаем числа
+
     while (std::getline(ss, token, ',')) {
         try {
-            int number = std::stoi(token);  // Преобразуем строку в число
+            int number = std::stoi(token);  
             std::cout << number << '\n';
-            numbers.push_back(number);  // Добавляем число в список
+            numbers.push_back(number);  
         } catch (const std::invalid_argument& e) {
             std::cerr << "Ошибка: " << e.what()
                       << " - некорректное число: " << token << "\n";
