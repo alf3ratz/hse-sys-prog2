@@ -58,17 +58,9 @@ std::vector<int> getCoinNums(std::string str) {
 
 
     while (std::getline(ss, token, ',')) {
-        try {
             int number = std::stoi(token);  
             std::cout << number << '\n';
-            numbers.push_back(number);  
-        } catch (const std::invalid_argument& e) {
-            std::cerr << "Ошибка: " << e.what()
-                      << " - некорректное число: " << token << "\n";
-        } catch (const std::out_of_range& e) {
-            std::cerr << "Ошибка: " << e.what()
-                      << " - число слишком большое: " << token << "\n";
-        }
+            numbers.push_back(number);     
     }
     return numbers;
 }

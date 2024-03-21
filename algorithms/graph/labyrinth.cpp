@@ -37,15 +37,14 @@ bool isValid(int x, int y, int rows, int cols,
     return x >= 0 && x < rows && y >= 0 && y < cols && maze[x][y] == 1;
 }
 
-// Функция поиска пути в лабиринте с использованием BFS и эвристики
 bool findPath(std::vector<std::vector<int>>& maze, Point start, Point end) {
     int rows = maze.size();
     int cols = maze[0].size();
 
     std::vector<std::vector<bool>> visited(
         rows, std::vector<bool>(
-                  cols, false));  // Массив для отслеживания посещенных ячеек
-    std::queue<Point> q;  // Очередь для BFS
+                  cols, false)); 
+    std::queue<Point> q; 
 
     q.push(start);  
     visited[start.x][start.y] =
