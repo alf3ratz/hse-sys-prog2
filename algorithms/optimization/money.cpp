@@ -68,9 +68,9 @@ std::vector<int> getCoinNums(std::string str) {
 int main() {
     std::string input;
     int amount = 54323423;
-    std::cout << "Enter string contains from nums and ,: ";
-    std::getline(std::cin, input);
-    std::vector<int> coins = getCoinNums(input);
+    // std::cout << "Enter string contains from nums and ,: ";
+    // std::getline(std::cin, input);
+    std::vector<int> coins = {1,2,3,5,25};//getCoinNums(input);
 
     std::cout << "Enter sum: ";
     std::cin >> amount;
