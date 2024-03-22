@@ -1,24 +1,20 @@
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <random>
 
-// Определение функции качества (пример)
-double qualityFunction(double x, double y) {
-    return x * x + y * y; // Пример: квадрат суммы аргументов
-}
+double qualityFunction(double x, double y) { return x * x + y * y; }
 
 // Градиент функции качества
 void gradient(double x, double y, double& gradX, double& gradY) {
-    // Производные функции (пример)
     gradX = 2 * x;
     gradY = 2 * y;
 }
 
-// Метод отжига с использованием градиентного спуска
-void simulatedAnnealing(double startX, double startY, double alpha, double epsilon, int maxIterations) {
+void annealing(double startX, double startY, double alpha, double epsilon,
+               int maxIterations, double coolingRate) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(-1.0, 1.0);
+    std::uniform_real_distribution<> dis(-0.01, 0.01);
 
     double x = startX;
     double y = startY;
@@ -40,19 +36,23 @@ void simulatedAnnealing(double startX, double startY, double alpha, double epsil
         if (newQuality < currentQuality) {
             currentQuality = newQuality;
         }
+        alpha *= coolingRate;
+
     }
 
-    std::cout << "Минимум функции: (" << x << ", " << y << "), Значение функции: " << currentQuality << std::endl;
+    std::cout << "Минимум функции: (" << x << ", " << y
+              << "), Значение функции: " << currentQuality << std::endl;
 }
-
+//инимум функции: (-0.144575, -0.265061), Значение функции: 9.8381e-05
+//Минимум функции: (4.56425, 5.08988), Значение функции: 3.64294e-05
 int main() {
-    double startX = 2.0; // Начальная точка x
-    double startY = 2.0; // Начальная точка y
-    double alpha = 0.01; // Шаг градиентного спуска
-    double epsilon = 0.1; // Параметр метода отжига
-    int maxIterations = 10000; // Максимальное количество итераций
-
-    simulatedAnnealing(startX, startY, alpha, epsilon, maxIterations);
+    double startX = 2.0;   // Начальная точка x
+    double startY = 2.0;   // Начальная точка y
+    double alpha = 0.01;   // Шаг градиентного спуска
+    double epsilon = 0.1;  // Параметр метода отжига
+    int maxIterations = 10000;  // Максимальное количество итераций
+    double coolingRate = 0.999;  // Коэффициент охлаждения
+    annealing(startX, startY, alpha, epsilon, maxIterations, coolingRate);
 
     return 0;
 }

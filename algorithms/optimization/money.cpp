@@ -81,7 +81,7 @@ int main() {
     std::cout << "Time taken by greedy algorythm: " << resultGreedy.second
               << " milliseconds"
               << "\n";
-
+coins = {1,2,3,5,25};
     auto resultDP = measureTime(minCoinsDP, coins, amount);
     std::cout << "Minimum coins (DP): " << resultDP.first << "\n";
     std::cout << "Time taken by dynamic programming algorythm: "
